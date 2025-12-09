@@ -2,7 +2,7 @@
 
 > **⚠️ DO NOT RUN ANY SCRIPTS OR BINARIES IN THIS REPOSITORY.**
 >
-> Read this first: **[DO NOT RUN THIS SHELL.txt](./DO%20NOT%20RUN%20THIS%20SHELL.txt)**
+>  With mandatory safety disclaimer and usage restrictions
 
 ## Context (What happened)
 
@@ -40,9 +40,8 @@ The dropper downloads XMRig from the official release URL:
 
 ## Files in this repository
 
-- **[DO NOT RUN THIS SHELL.txt](./DO%20NOT%20RUN%20THIS%20SHELL.txt)** — mandatory safety disclaimer and usage restrictions
+- **[DO NOT RUN THIS SHELL.txt](./DO%20NOT%20RUN%20THIS%20SHELL.txt)**
 - `sex.sh` — malicious dropper script (text evidence only; **do not run**)
-- (Optional) `iocs.md` — extracted indicators and notes (recommended)
 
 ## Responsible use
 
